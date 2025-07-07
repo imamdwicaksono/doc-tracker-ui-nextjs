@@ -4,8 +4,8 @@ import { handleError } from "./handle_error";
 export const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3002/api";
 
 function getAuthHeader(): Record<string, string> {
-  const token = localStorage.getItem("token") || sessionStorage.getItem("token");
-  return token ? { Authorization: `Bearer ${token}` } : {};
+  // const token = localStorage.getItem("token") || sessionStorage.getItem("token");
+  return { credentials: 'include' }
 }
 
 export async function createTracker(data: TrackerInput) {
@@ -150,7 +150,7 @@ export async function requestVerifyOtp(email: string, otp: string) {
 
   // Store token in localStorage or sessionStorage
   if (response.token) {
-    localStorage.setItem("token", response.token);
+    // localStorage.setItem("token", response.token);
     // or sessionStorage.setItem("token", response.token);
   }
 
