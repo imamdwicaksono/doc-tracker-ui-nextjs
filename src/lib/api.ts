@@ -3,23 +3,26 @@ import { handleError } from "./handle_error";
 
 export const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3002/api";
 
+function getAuthHeader(): Record<string, string> {
+  const token = localStorage.getItem("token") || sessionStorage.getItem("token");
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
+
 export async function createTracker(data: TrackerInput) {
   const res = await fetch(`${API_URL}/api/tracker/create`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
+      ...getAuthHeader(),
     },
-    credentials: 'include',
     body: JSON.stringify(data),
   });
 
-  // Jika unauthorized (token invalid/expired)
   if (res.status === 401) {
-    // Redirect manual ke login
     if (typeof window !== 'undefined') {
-      window.location.href = '/auth/login'
+      window.location.href = '/auth/login';
     }
-    throw new Error('Unauthorized')
+    throw new Error('Unauthorized');
   }
 
   const response = await res.json();
@@ -32,7 +35,7 @@ export async function fetchTrackers(): Promise<Tracker[]> {
   try {
     const res = await fetch(`${API_URL}/api/trackers`, {
       method: "GET",
-      credentials: 'include',
+      headers: { ...getAuthHeader() },
     });
 
     if (!res.ok) {
@@ -40,13 +43,11 @@ export async function fetchTrackers(): Promise<Tracker[]> {
       return [];
     }
 
-    // Jika unauthorized (token invalid/expired)
     if (res.status === 401) {
-      // Redirect manual ke login
       if (typeof window !== 'undefined') {
-        window.location.href = '/auth/login'
+        window.location.href = '/auth/login';
       }
-      throw new Error('Unauthorized')
+      throw new Error('Unauthorized');
     }
 
     const data: Tracker[] = await res.json();
@@ -60,16 +61,14 @@ export async function fetchTrackers(): Promise<Tracker[]> {
 export async function fetchTrackerById(id: string) {
   const res = await fetch(`${API_URL}/api/tracker/${id}`, {
     method: "GET",
-    credentials: 'include',
+    headers: { ...getAuthHeader() },
   });
 
-  // Jika unauthorized (token invalid/expired)
   if (res.status === 401) {
-    // Redirect manual ke login
     if (typeof window !== 'undefined') {
-      window.location.href = '/auth/login'
+      window.location.href = '/auth/login';
     }
-    throw new Error('Unauthorized')
+    throw new Error('Unauthorized');
   }
 
   const response = await res.json();
@@ -79,18 +78,12 @@ export async function fetchTrackerById(id: string) {
 }
 
 export async function completeCheckpoint(data: CheckpointStatusInput) {
-  const form = new FormData();
-  form.append("tracker_id", data.tracker_id);
-  form.append("email", data.email);
-  form.append("note", data.note);
-  form.append("evidence", data.evidence);
-
   const res = await fetch(`${API_URL}/api/checkpoint/complete`, {
     method: "POST",
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
+      ...getAuthHeader(),
     },
-    credentials: 'include',
     body: JSON.stringify(data),
   });
 
@@ -103,7 +96,7 @@ export async function completeCheckpoint(data: CheckpointStatusInput) {
 export async function getTrackerById(id: string) {
   const res = await fetch(`${API_URL}/api/tracker/${id}`, {
     method: "GET",
-    credentials: 'include',
+    headers: { ...getAuthHeader() },
   });
 
   const response = await res.json();
@@ -115,17 +108,18 @@ export async function getTrackerById(id: string) {
 export async function submitCheckpoint(payload: CheckpointStatusInput) {
   const res = await fetch(`${API_URL}/checkpoint/complete`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    credentials: 'include',
+    headers: {
+      "Content-Type": "application/json",
+      ...getAuthHeader(),
+    },
     body: JSON.stringify(payload),
-  })
+  });
 
   const response = await res.json();
-  if (!res.ok) return handleError(JSON.parse(response), "submitCheckpoint");
+  if (!res.ok) return handleError(response, "submitCheckpoint");
 
   return response;
 }
-
 
 export async function requestOtp(email: string) {
   const res = await fetch(`${API_URL}/api/auth/request-otp`, {
@@ -133,7 +127,6 @@ export async function requestOtp(email: string) {
     headers: {
       "Content-Type": "application/json",
     },
-    credentials: 'include',
     body: JSON.stringify({ email }),
   });
 
@@ -149,7 +142,6 @@ export async function requestVerifyOtp(email: string, otp: string) {
     headers: {
       "Content-Type": "application/json",
     },
-    credentials: "include",
     body: JSON.stringify({ email, otp }),
   });
 
@@ -162,13 +154,11 @@ export async function requestVerifyOtp(email: string, otp: string) {
 export async function logout() {
   const res = await fetch(`${API_URL}/api/auth/logout`, {
     method: "POST",
-    credentials: "include",
+    headers: { ...getAuthHeader() },
   });
 
   const response = await res.json();
   if (!res.ok) return handleError(response, "logout");
-
-
 
   return response;
 }
@@ -176,38 +166,27 @@ export async function logout() {
 export async function checkAuth() {
   const res = await fetch(`${API_URL}/api/auth/me`, {
     method: "GET",
-    credentials: 'include',
-  })
+    headers: { ...getAuthHeader() },
+  });
 
-  return res.status === 200
+  return res.status === 200;
 }
 
 export async function getUserInfo() {
   const res = await fetch(`${API_URL}/api/auth/me`, {
     method: "GET",
-    credentials: 'include',
+    headers: { ...getAuthHeader() },
   });
 
-  if (!res.ok) return null
+  if (!res.ok) return null;
 
-  return await res.json()
-}
-
-function clearCookie(res: Response) {
-   if (res.status === 401) {
-    // Redirect manual ke login
-    if (typeof window !== 'undefined') {
-      document.cookie = 'authToken=; Max-Age=0; path=/;' // hapus cookie manual
-      // window.location.href = '/auth/login'
-    }
-    return null
-  }
+  return await res.json();
 }
 
 export async function viewEvidenceFile(hash: string) {
   const res = await fetch(`${API_URL}/api/evidence?hash=${hash}`, {
     method: "GET",
-    credentials: 'include',
+    headers: { ...getAuthHeader() },
   });
 
   const response = await res.json();
@@ -219,19 +198,18 @@ export async function viewEvidenceFile(hash: string) {
 export async function getTrackerSummary(email: string) {
   const res = await fetch(`${API_URL}/api/tracker/summary/${email}`, {
     method: "GET",
-    credentials: 'include',
+    headers: { ...getAuthHeader() },
   });
 
   if (res.status === 401) {
-    // Redirect manual ke login
     if (typeof window !== 'undefined') {
-      window.location.href = '/auth/login'
+      window.location.href = '/auth/login';
     }
-    throw new Error('Unauthorized')
+    throw new Error('Unauthorized');
   }
 
   const response = await res.json();
   if (!res.ok) return handleError(response, "getTrackerSummary");
 
-  return response.data; // ✅ langsung ambil data
+  return response.data;
 }
