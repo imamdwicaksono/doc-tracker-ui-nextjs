@@ -148,6 +148,12 @@ export async function requestVerifyOtp(email: string, otp: string) {
   const response = await res.json();
   if (!res.ok) return handleError(response, "verifyOtp");
 
+  // Store token in localStorage or sessionStorage
+  if (response.token) {
+    localStorage.setItem("token", response.token);
+    // or sessionStorage.setItem("token", response.token);
+  }
+
   return response;
 }
 
