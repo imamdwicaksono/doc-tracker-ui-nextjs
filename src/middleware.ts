@@ -10,6 +10,8 @@ export function middleware(request: NextRequest) {
     isAuthPage,
   })
 
+  
+
   if (!token && !isAuthPage) {
     return NextResponse.redirect(new URL('/auth/login', request.url))
   }
@@ -17,8 +19,9 @@ export function middleware(request: NextRequest) {
   if (token && isAuthPage) {
     return NextResponse.redirect(new URL('/', request.url))
   }
+  const response = NextResponse.next()
 
-  return NextResponse.next()
+  return response
 }
 
 export const config = {

@@ -1,29 +1,39 @@
-import type { NextConfig } from "next";
-
-const nextConfig: NextConfig = {
-  /* config options here */
-  output: 'export', // 👈 penting: biar bisa di-export jadi static
-  domains: ['localhost'], // tambahkan di sini
-  remotePatterns: [
-    {
-      protocol: 'http',
-      hostname: 'localhost',
-      port: '3002',
-      pathname: '/evidence/**',
-    },
-  ]
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  images: {
+    remotePatterns: [
+      // {
+      //   protocol: 'https',
+      //   hostname: 'api.docutrack.mmsgroup.test',
+      //   pathname: '/evidence/**',
+      // },
+    ],
+  },
+  // async headers() {
+  //   return [
+  //     {
+  //       // ✅ Header untuk seluruh API route (bukan untuk rewrite destination)
+  //       source: '/api/:path*',
+  //       headers: [
+  //         { key: 'Access-Control-Allow-Credentials', value: 'true' },
+  //         { key: 'Access-Control-Allow-Origin', value: 'https://docutrack.mmsgroup.test' }, // ✅ ganti jadi frontend origin
+  //         { key: 'Access-Control-Allow-Methods', value: 'GET,OPTIONS,PATCH,DELETE,POST,PUT' },
+  //         {
+  //           key: 'Access-Control-Allow-Headers',
+  //           value: 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, Authorization',
+  //         },
+  //       ],
+  //     },
+  //   ];
+  // },
+  // async rewrites() {
+  //   return [
+  //     {
+  //       source: '/api/:path*',
+  //       destination: 'https://api.docutrack.mmsgroup.test/api/:path*',
+  //     },
+  //   ];
+  // },
 };
 
-module.exports = {
-  allowedDevOrigins: [
-    'local-origin.dev',
-    '*.local-origin.dev',
-    '172.24.4.33',       // Add the IP address directly
-    'http://172.24.4.33:3002', // Optionally add with protocol
-    'http://localhost:3002',   // Common for local development
-    'localhost:3002'          // Also allow bare localhost
-  ]
-}
-
-
-export default nextConfig;
+module.exports = nextConfig;

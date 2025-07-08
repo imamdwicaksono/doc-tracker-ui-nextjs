@@ -19,13 +19,14 @@ export default function LoginOTPForm() {
     }
 
     const handlerVerifyOtp = async () => {
-        const res = await requestVerifyOtp(email, otp)
-        if (res.status === 200) {
-            router.push('/')
-        } else {
-            alert('Invalid OTP')
-        }
-    }
+      const res = await requestVerifyOtp(email, otp);
+
+      if (res.status === 200) {
+        router.push("/");
+      } else {
+        alert("Invalid OTP");
+      }
+    };
 
   return (
     <div className="max-w-md p-4 mx-auto">

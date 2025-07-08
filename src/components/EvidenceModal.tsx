@@ -8,8 +8,10 @@ type EvidenceModalProps = {
   onClose: () => void;
 };
 
+const WEB_URL = process.env.NEXT_PUBLIC_WEB_URL || "http://localhost:3000";
+
 export default function EvidenceModal({ hash, open, onClose }: EvidenceModalProps) {
-  const imageUrl = `${API_URL}/evidence/view?hash=${hash}`;
+  const imageUrl = `${WEB_URL}/evidence/view?hash=${hash}`;
 
   return (
     <Dialog open={open} onClose={onClose} className="fixed inset-0 z-50 overflow-y-auto">

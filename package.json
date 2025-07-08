@@ -14,7 +14,7 @@
   "dependencies": {
     "@headlessui/react": "^2.2.4",
     "html-to-image": "^1.11.13",
-    "next": "15.3.4",
+    "next": "^15.4.0",
     "qrcode.react": "^4.2.0",
     "react": "^19.0.0",
     "react-barcode": "^1.6.1",
