@@ -9,7 +9,8 @@
     "lint": "next lint",
     "dev": "concurrently \"npm:next\" \"npm:go\"",
     "next": "next dev",
-    "go": "cd ../doc-tracker-api && go run cmd/main.go"
+    "go": "cd ../doc-tracker-api && go run cmd/main.go",
+    "export": "next export"
   },
   "dependencies": {
     "@headlessui/react": "^2.2.4",

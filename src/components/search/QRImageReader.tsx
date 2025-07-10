@@ -146,6 +146,7 @@ export default function QRImageReader({onTrackerFound}: Props) {
             <label className="block mb-1 font-semibold">Upload Gambar QR:</label>
             <input type="file" accept="image/*" onChange={handleFileChange} />
             {imageURL && (
+            // eslint-disable-next-line @next/next/no-img-element
             <img
                 src={imageURL}
                 alt="QR Preview"

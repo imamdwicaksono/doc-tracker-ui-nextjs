@@ -1,5 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { CheckpointStatusInput, Tracker, TrackerInput } from "@/types/types";
-import { handleError } from "./handle_error";
 import { showAlertDanger } from "@/lib/sweetalert-alert";
 
 export const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3002/api";

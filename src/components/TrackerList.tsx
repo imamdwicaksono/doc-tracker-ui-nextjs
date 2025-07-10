@@ -29,6 +29,7 @@ export default function TrackerList({
 
   useEffect(() => {
     loadTrackers()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tracker])
 
   return (

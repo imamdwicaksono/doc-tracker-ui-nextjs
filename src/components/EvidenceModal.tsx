@@ -1,6 +1,4 @@
-import { API_URL } from "@/lib/api";
 import { Dialog } from "@headlessui/react";
-import Image from "next/image";
 
 type EvidenceModalProps = {
   hash: string;
@@ -22,6 +20,7 @@ export default function EvidenceModal({ hash, open, onClose }: EvidenceModalProp
         <div className="relative z-50 w-full max-w-3xl p-4 bg-white shadow-xl rounded-xl">
           <Dialog.Title className="mb-4 text-xl font-semibold">Evidence Image</Dialog.Title>
           <div className="flex justify-center">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={imageUrl} alt="evidence" width={800} height={600} className="max-h-[70vh] rounded shadow" />
           </div>
           <div className="mt-4 text-right">

@@ -38,6 +38,7 @@ export default function CreateTrackerForm() {
 
   useEffect(() => {
     handleGetEmail()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
   
 
@@ -99,8 +100,6 @@ export default function CreateTrackerForm() {
     });
   }
 };
-
-  const mobile_url = process.env.NEXT_PUBLIC_MOBILE_URL || 'http://localhost:3001/mobile'
 
   return (
     <><div className="max-w-md p-4 mx-auto space-y-4 text-sm">
