@@ -162,7 +162,7 @@ export default function CreateTrackerForm() {
 
       <button onClick={handleSubmit} className="w-full p-2 text-white bg-blue-600 rounded">Submit</button>
 
-      <Link href={`${mobile_url}/trackers`} className="block mt-4 text-center text-blue-600">
+      <Link href={`${web_url}/trackers`} className="block mt-4 text-center text-blue-600">
         🔍 View Trackers
       </Link>
     </div>

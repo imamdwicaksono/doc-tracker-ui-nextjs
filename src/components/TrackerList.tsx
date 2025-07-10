@@ -1,14 +1,24 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { RefObject, useEffect, useState } from 'react'
 import { fetchTrackers } from '../lib/api'
 import Link from 'next/link'
 import { Tracker } from '../types/types'
 
-export default function TrackerList() {
+export default function TrackerList({
+  tracker,
+  listRef
+}: {
+  tracker?: Tracker,
+  listRef?: RefObject<HTMLDivElement | null>
+}) {
   const [trackers, setTrackers] = useState<Tracker[]>([])
 
   const loadTrackers = async () => {
+    if (tracker) {
+      setTrackers([tracker])
+      return
+    }
     try {
       const data = await fetchTrackers()
       setTrackers(data)
@@ -19,10 +29,10 @@ export default function TrackerList() {
 
   useEffect(() => {
     loadTrackers()
-  }, [])
+  }, [tracker])
 
   return (
-    <div className="max-w-screen-lg min-h-screen p-4 mx-auto bg-gray-50">
+    <div ref={listRef} className="max-w-screen-lg min-h-screen p-4 mx-auto bg-gray-50">
       <h1 className="mb-4 text-lg font-bold">📄 Document Tracking</h1>
 
       <div className="flex flex-col gap-4 sm:hidden">

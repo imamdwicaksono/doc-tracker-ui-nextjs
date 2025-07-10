@@ -24,7 +24,7 @@ export default function TrackerDetailPage() {
       <h1 className="text-2xl font-bold">Detail Tracker</h1>
       <p><strong>ID:</strong> {tracker.id}</p>
       <p><strong>Status:</strong> {tracker.status}</p>
-      <p><strong>Creator:</strong> {tracker.creator_address}</p>
+      <p><strong>Creator:</strong> {tracker.creator}</p>
       <p><strong>Type:</strong> {tracker.type}</p>
       <p><strong>Privacy:</strong> {tracker.privacy}</p>
       <p><strong>Created At:</strong> {new Date(tracker.created_at * 1000).toLocaleString()}</p>
