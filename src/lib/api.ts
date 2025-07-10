@@ -1,5 +1,6 @@
 import { CheckpointStatusInput, Tracker, TrackerInput } from "@/types/types";
 import { handleError } from "./handle_error";
+import { showAlertDanger } from "@/lib/sweetalert-alert";
 
 export const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3002/api";
 
@@ -23,7 +24,15 @@ async function fetchWithAuth<T = any>(
   }
 
   const json = await res.json();
-  if (!res.ok) return handleError(json, path);
+  if (!res.ok) {
+    const errorResult = await res.json();
+    showAlertDanger({
+      title: 'Error',
+      html: errorResult.message,
+      confirmButtonText: 'OK',
+    });
+    throw new Error(errorResult.message || 'Failed to fetch data');
+  }
   return json;
 }
 
@@ -39,7 +48,15 @@ async function fetchPublic<T = any>(
   });
 
   const json = await res.json();
-  if (!res.ok) return handleError(json, path);
+  if (!res.ok) {
+    const errorResult = await res.json();
+    showAlertDanger({
+      title: 'Error',
+      html: errorResult.message,
+      confirmButtonText: 'OK',
+    });
+    throw new Error(errorResult.message || 'Failed to fetch data');
+  }
   return json;
 }
 

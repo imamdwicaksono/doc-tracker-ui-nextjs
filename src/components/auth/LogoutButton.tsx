@@ -17,8 +17,10 @@ export default function LogoutButton({ className = 'flex flex-col items-center t
   }, [])
 
   const handleLogout = async () => {
-    await logout()
-    router.push('/auth/login')
+    const res = await logout()
+    if (res.status == 200) {
+      router.push('/auth/login')
+    }
   }
 
   if (!isAuthenticated) return null

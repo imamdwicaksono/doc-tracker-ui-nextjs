@@ -4,7 +4,9 @@ import { Tracker } from '@/types/types'
 import { createTracker, getUserInfo } from '@/lib/api'
 import Link from 'next/dist/client/link'
  import { useEffect } from 'react'
+ import { showAlertSuccess, showAlertDanger } from '@/lib/sweetalert-alert'
 
+const web_url = process.env.NEXT_PUBLIC_WEB_URL || 'http://localhost:3000'
 
 export default function CreateTrackerForm() {
   const [form, setForm] = useState<Tracker>({
@@ -29,6 +31,7 @@ export default function CreateTrackerForm() {
       return res.email || ''
     })
     setEmail(email)
+    setForm({ ...form, creator: email })
   }
 
  
@@ -51,7 +54,7 @@ export default function CreateTrackerForm() {
       }
       if (field === 'email' && idx === form.checkpoints.length - 1) {
         setTargetEnd(e.target.value)
-        
+        setForm({ ...form, target_end: e.target.value })
       }
       setForm({ ...form, checkpoints: updatedCheckpoints })
     } else {
@@ -71,20 +74,31 @@ export default function CreateTrackerForm() {
   }
 
   const handleSubmit = async (e: React.FormEvent<HTMLButtonElement | HTMLFormElement>) => {
-    e.preventDefault()
-    const payload = {
-      ...form,
-      created_at: Date.now(),
-      encrypted_notes: {},
-      status: 'in_progress',
-      privacy: (form.privacy === 'public' ? 'public' : 'private') as 'public' | 'private'
-    }
+  e.preventDefault();
+  const payload = {
+    ...form,
+    created_at: Date.now(),
+    encrypted_notes: {},
+    status: 'in_progress',
+    privacy: (form.privacy === 'public' ? 'public' : 'private') as 'public' | 'private',
+  };
 
-    const res = await createTracker(payload)
-
-    const result = await res.json()
-    alert(JSON.stringify(result))
+  try {
+    const result = await createTracker(payload);
+    showAlertSuccess({
+      title: 'Tracker Created',
+      html: `Tracker ID: <strong>${result.data.id}</strong>`,
+      confirmButtonText: 'OK',
+    });
+    window.location.href = `${web_url}/trackers/${result.data.id}`;
+  } catch (error) {
+    showAlertDanger({
+      title: 'Error',
+      html: 'Network error or invalid response' + (error instanceof Error ? `: ${error.message}` : ''),
+      confirmButtonText: 'OK',
+    });
   }
+};
 
   const mobile_url = process.env.NEXT_PUBLIC_MOBILE_URL || 'http://localhost:3001/mobile'
 
@@ -114,16 +128,18 @@ export default function CreateTrackerForm() {
           />
           <input
             value={cp.note}
-            onChange={e => handleChange(e, idx, 'note')}
+            type="hidden"
             placeholder="Note"
             className="w-full p-2 border rounded"
           />
-          <input
+          <select
             value={cp.role}
             onChange={e => handleChange(e, idx, 'role')}
-            placeholder="Role"
             className="w-full p-2 border rounded"
-          />
+          >
+            <option value="signer">Signer</option>
+            <option value="courier">Courier</option>
+          </select>
           <select
             value={cp.type}
             onChange={e => handleChange(e, idx, 'type')}
