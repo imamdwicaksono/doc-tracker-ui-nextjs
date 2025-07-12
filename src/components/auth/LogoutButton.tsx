@@ -6,7 +6,6 @@ import { useRouter } from 'next/navigation'
 
 export default function LogoutButton({ className = 'flex flex-col items-center text-blue-600' }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
-  const router = useRouter()
 
   useEffect(() => {
     async function verify() {
@@ -19,7 +18,7 @@ export default function LogoutButton({ className = 'flex flex-col items-center t
   const handleLogout = async () => {
     const res = await logout()
     if (res.status == 200) {
-      router.push('/')
+      window.location.reload()
     }
   }
 
