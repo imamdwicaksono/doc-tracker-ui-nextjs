@@ -1,39 +1,49 @@
 /** @type {import('next').NextConfig} */
+const allowedOrigin = process.env.ALLOWED_ORIGIN;
+
+let remotePatterns: Array<{ protocol: string; hostname: string; pathname: string }> = [];
+let headers: Array<{
+  source: string;
+  headers: Array<{ key: string; value: string }>;
+}> = [];
+
+if (allowedOrigin) {
+  const url = new URL(allowedOrigin);
+  const hostname = url.hostname;
+  const protocol = url.protocol.replace(":", "");
+
+  remotePatterns = [
+    {
+      protocol,
+      hostname,
+      pathname: '/evidence/**',
+    },
+  ];
+
+  headers = [
+    {
+      source: '/api/:path*',
+      headers: [
+        { key: 'Access-Control-Allow-Credentials', value: 'true' },
+        { key: 'Access-Control-Allow-Origin', value: allowedOrigin },
+        { key: 'Access-Control-Allow-Methods', value: 'GET,OPTIONS,PATCH,DELETE,POST,PUT' },
+        {
+          key: 'Access-Control-Allow-Headers',
+          value:
+            'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, Authorization',
+        },
+      ],
+    },
+  ];
+}
+
 const nextConfig = {
   images: {
-    remotePatterns: [
-      // {
-      //   protocol: 'https',
-      //   hostname: 'api.docutrack.mmsgroup.test',
-      //   pathname: '/evidence/**',
-      // },
-    ],
+    remotePatterns,
   },
-  // async headers() {
-  //   return [
-  //     {
-  //       // ✅ Header untuk seluruh API route (bukan untuk rewrite destination)
-  //       source: '/api/:path*',
-  //       headers: [
-  //         { key: 'Access-Control-Allow-Credentials', value: 'true' },
-  //         { key: 'Access-Control-Allow-Origin', value: 'https://docutrack.mmsgroup.test' }, // ✅ ganti jadi frontend origin
-  //         { key: 'Access-Control-Allow-Methods', value: 'GET,OPTIONS,PATCH,DELETE,POST,PUT' },
-  //         {
-  //           key: 'Access-Control-Allow-Headers',
-  //           value: 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, Authorization',
-  //         },
-  //       ],
-  //     },
-  //   ];
-  // },
-  // async rewrites() {
-  //   return [
-  //     {
-  //       source: '/api/:path*',
-  //       destination: 'https://api.docutrack.mmsgroup.test/api/:path*',
-  //     },
-  //   ];
-  // },
+  async headers() {
+    return headers;
+  },
 };
 
 module.exports = nextConfig;
