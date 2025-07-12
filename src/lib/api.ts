@@ -16,12 +16,12 @@ async function fetchWithAuth<T = any>(
     body: body ? JSON.stringify(body) : undefined,
   });
 
-  if (res.status === 401) {
-    if (typeof window !== 'undefined') {
-      window.location.href = '/auth/login';
-    }
-    throw new Error('Unauthorized');
-  }
+  // if (res.status === 401) {
+  //   if (typeof window !== 'undefined') {
+  //     window.location.href = '/auth/login';
+  //   }
+  //   throw new Error('Unauthorized');
+  // }
 
   const json = await res.json();
   if (!res.ok) {

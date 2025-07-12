@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { createTracker } from '../lib/api';
 import { Checkpoint } from '@/types/types';
+import { showAlertDanger, showAlertSuccess } from '@/lib/sweetalert-alert';
 
 export default function TrackerForm() {
   const [creator, setCreator] = useState('');
@@ -69,20 +70,31 @@ export default function TrackerForm() {
         })),
       };
       const result = await createTracker(payload);
-      alert(result);
+      if (!result) {
+        throw new Error('Failed to create tracker');
+      }
+      showAlertSuccess({
+            title: 'Success',
+            html: 'Tracker created successfully!',
+            confirmButtonText: 'OK',
+          });
     } catch (err) {
-      alert('Failed to create tracker');
+      showAlertDanger({
+            title: 'Error',
+            html: 'Failed to create tracker',
+            confirmButtonText: 'OK',
+          });
       console.error(err);
     }
   };
 
   return (
-    <div className="p-4 bg-white min-h-screen">
-      <h1 className="text-lg font-bold mb-4">📄 Create Tracker</h1>
+    <div className="min-h-screen p-4 bg-white">
+      <h1 className="mb-4 text-lg font-bold">📄 Create Tracker</h1>
 
       <div className="space-y-3">
         <select
-          className="border rounded p-2 w-full text-sm"
+          className="w-full p-2 text-sm border rounded"
           value={type}
           onChange={(e) => setType(e.target.value)}
         >
@@ -93,7 +105,7 @@ export default function TrackerForm() {
         </select>
 
         <select
-          className="border rounded p-2 w-full text-sm"
+          className="w-full p-2 text-sm border rounded"
           value={privacy}
           onChange={(e) =>
             setPrivacy(e.target.value as 'public' | 'private')
@@ -104,32 +116,32 @@ export default function TrackerForm() {
         </select>
 
         <input
-          className="border rounded p-2 w-full text-sm"
+          className="w-full p-2 text-sm border rounded"
           placeholder="Creator Email"
           value={creator}
           onChange={(e) => setCreator(e.target.value)}
         />
 
         <input
-          className="border rounded p-2 w-full text-sm"
+          className="w-full p-2 text-sm border rounded"
           placeholder="Target End Email"
           value={targetEnd}
           onChange={(e) => setTargetEnd(e.target.value)}
         />
 
         <div className="pt-4">
-          <h2 className="font-semibold text-base mb-2">Checkpoints</h2>
+          <h2 className="mb-2 text-base font-semibold">Checkpoints</h2>
 
           {checkpoints.map((cp, idx) => (
-            <div key={idx} className="mb-4 p-3 border rounded bg-gray-50 space-y-2">
+            <div key={idx} className="p-3 mb-4 space-y-2 border rounded bg-gray-50">
               <input
-                className="border p-2 w-full rounded text-sm"
+                className="w-full p-2 text-sm border rounded"
                 placeholder="Checkpoint Email"
                 value={cp.email}
                 onChange={(e) => handleChange(idx, 'email', e.target.value)}
               />
               <select
-                className="border p-2 w-full rounded text-sm"
+                className="w-full p-2 text-sm border rounded"
                 value={cp.type}
                 onChange={(e) => handleChange(idx, 'type', e.target.value)}
               >
@@ -137,7 +149,7 @@ export default function TrackerForm() {
                 <option value="external">External</option>
               </select>
               <select
-                className="border p-2 w-full rounded text-sm"
+                className="w-full p-2 text-sm border rounded"
                 value={cp.role}
                 onChange={(e) => handleChange(idx, 'role', e.target.value)}
               >
@@ -145,7 +157,7 @@ export default function TrackerForm() {
                 <option value="courier">Courier</option>
               </select>
               <input
-                className="border p-2 w-full rounded text-sm"
+                className="w-full p-2 text-sm border rounded"
                 placeholder="Note"
                 value={cp.note}
                 onChange={(e) => handleChange(idx, 'note', e.target.value)}
@@ -155,7 +167,7 @@ export default function TrackerForm() {
 
           <button
             onClick={handleAddCheckpoint}
-            className="bg-blue-500 text-white w-full py-2 rounded text-sm"
+            className="w-full py-2 text-sm text-white bg-blue-500 rounded"
           >
             + Add Checkpoint
           </button>
@@ -163,7 +175,7 @@ export default function TrackerForm() {
 
         <button
           onClick={handleSubmit}
-          className="bg-green-600 text-white w-full py-2 rounded text-sm mt-4"
+          className="w-full py-2 mt-4 text-sm text-white bg-green-600 rounded"
         >
           ✅ Submit Tracker
         </button>

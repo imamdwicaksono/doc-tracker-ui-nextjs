@@ -1,7 +1,10 @@
 'use client'
+
 import { useState } from 'react'
 import { requestOtp, requestVerifyOtp } from '@/lib/api'
 import { useRouter } from 'next/navigation'
+import LoadingOverlay from '@/components/LoadingOverlay'
+import { showAlertDanger } from '@/lib/sweetalert-alert'
 
 export default function LoginOTPForm() {
   const [email, setEmail] = useState('')
@@ -21,7 +24,13 @@ export default function LoginOTPForm() {
       }
     } catch (e) {
       console.error(e)
-      alert("Failed to send OTP")
+      // alert('Failed to send OTP')
+      showAlertDanger({
+            title: 'Error',
+            html: 'Failed to send OTP',
+            confirmButtonText: 'OK',
+          });
+
     } finally {
       setIsLoading(false)
     }
@@ -32,59 +41,74 @@ export default function LoginOTPForm() {
     try {
       const res = await requestVerifyOtp(email, otp)
       if (res.status === 200) {
-        router.push('/')
+        // ✅ Paksa redirect tanpa menunggu session load
+        router.replace('/')               // Ganti route sekarang juga
+        setTimeout(() => {
+          window.location.reload()       // Optional: force reload agar session pasti terdeteksi
+        }, 100)                           // Delay kecil agar router selesai
       } else {
-        alert('Invalid OTP')
+        // alert('Invalid OTP')
+        showAlertDanger({
+          title: 'Error',
+          html: 'Invalid OTP',
+          confirmButtonText: 'OK',
+        });
       }
     } catch (e) {
       console.error(e)
-      alert('Verification failed')
+      // alert('Verification failed')
+      showAlertDanger({
+        title: 'Error',
+        html: 'Verification failed',
+        confirmButtonText: 'OK',
+      });
     } finally {
       setIsLoading(false)
     }
   }
 
   return (
-    <div className="max-w-md p-4 mx-auto">
-      <h1 className="mb-4 text-xl font-bold">Login via Email OTP</h1>
+    <div className="justify-center min-h-screen">
+      <div className="w-full max-w-md text-center">
+        {/* <h1 className="mb-4 text-gray-800 text-bold font-old">Login via Email OTP</h1> */}
 
-      {isLoading ? (
-        <div className="flex items-center justify-center">
-          <svg className="w-8 h-8 text-blue-500 animate-spin" viewBox="0 0 24 24">
-            <circle className="opacity-25" cx="12" cy="12" r="10"
-              stroke="currentColor" strokeWidth="4"></circle>
-            <path className="opacity-75" fill="currentColor"
-              d="M4 12a8 8 0 018-8v8H4z"></path>
-          </svg>
-        </div>
-      ) : step === 'input' ? (
-        <>
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="w-full p-2 mb-2 border"
-            placeholder="Enter your email"
-          />
-          <button onClick={handlerRequestOtp} className="px-4 py-2 text-white bg-blue-600 rounded">
-            Request OTP
-          </button>
-        </>
-      ) : (
-        <>
-          <p className="mb-2">OTP sent to {email}</p>
-          <input
-            type="text"
-            value={otp}
-            onChange={(e) => setOtp(e.target.value)}
-            className="w-full p-2 mb-2 border"
-            placeholder="Enter OTP"
-          />
-          <button onClick={handlerVerifyOtp} className="px-4 py-2 text-white bg-green-600 rounded">
-            Verify
-          </button>
-        </>
-      )}
+        {isLoading ? (
+          <LoadingOverlay />
+        ) : step === 'input' ? (
+          <>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full p-2 mb-4 border rounded focus:outline-none focus:ring"
+              placeholder="Enter your email"
+            />
+            <button
+              onClick={handlerRequestOtp}
+              className="w-full px-4 py-2 text-white bg-blue-600 rounded hover:bg-blue-700"
+            >
+              Request OTP
+            </button>
+          </>
+        ) : (
+          <>
+            <p className="mb-2 text-sm text-gray-500">OTP sent to <strong>{email}</strong></p>
+            <input
+              type="text"
+              value={otp}
+              onChange={(e) => setOtp(e.target.value)}
+              className="w-full p-2 mb-4 border rounded focus:outline-none focus:ring"
+              placeholder="Enter OTP"
+            />
+            <button
+              onClick={handlerVerifyOtp}
+              className="w-full px-4 py-2 text-white bg-green-600 rounded hover:bg-green-700"
+            >
+              Verify OTP
+            </button>
+          </>
+        )}
+      </div>
     </div>
   )
 }

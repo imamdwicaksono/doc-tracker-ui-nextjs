@@ -1,5 +1,6 @@
 import React, { useState, ChangeEvent, FormEvent } from 'react'
 import { CheckpointStatusInput } from '@/types/types'
+import { showAlertDanger } from '@/lib/sweetalert-alert'
 
 interface CheckpointFormProps {
   trackerId: string
@@ -21,7 +22,11 @@ const CheckpointForm: React.FC<CheckpointFormProps> = ({ trackerId, email, onSub
     e.preventDefault()
 
     if (!evidenceFile) {
-      alert('Please select an evidence file.')
+      showAlertDanger({
+        title: 'Error',
+        html: 'Please select an evidence file.',
+        confirmButtonText: 'OK',
+      })
       return
     }
 
@@ -36,17 +41,19 @@ const CheckpointForm: React.FC<CheckpointFormProps> = ({ trackerId, email, onSub
     }
 
     onSubmit(data)
+
+    
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 p-4 border rounded">
+    <form onSubmit={handleSubmit} className="p-4 space-y-4 border rounded">
       <div>
         <label className="block mb-1 font-semibold">Note:</label>
         <textarea
           value={note}
           onChange={e => setNote(e.target.value)}
           required
-          className="w-full border p-2 rounded"
+          className="w-full p-2 border rounded"
         />
       </div>
       <div>
@@ -60,7 +67,7 @@ const CheckpointForm: React.FC<CheckpointFormProps> = ({ trackerId, email, onSub
       </div>
       <button
         type="submit"
-        className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+        className="px-4 py-2 text-white bg-blue-600 rounded hover:bg-blue-700"
       >
         Submit
       </button>

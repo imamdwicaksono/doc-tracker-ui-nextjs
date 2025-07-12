@@ -7,6 +7,7 @@ import { useParams } from 'next/navigation'
 import { fetchTrackerById, completeCheckpoint } from '@/lib/api'
 import { Tracker, Checkpoint } from '@/types/types'
 import CheckpointForm from '@/components/CheckpointForm'
+import { showAlertDanger, showAlertSuccess } from '@/lib/sweetalert-alert'
 
 export default function CheckpointPage() {
   const { id, email } = useParams() as { id: string; email: string }
@@ -34,8 +35,8 @@ export default function CheckpointPage() {
   }
 
   return (
-    <div className="p-6 max-w-xl mx-auto bg-white shadow rounded mt-8">
-      <h1 className="text-2xl font-bold mb-4">Checkpoint Detail</h1>
+    <div className="max-w-xl p-6 mx-auto mt-8 bg-white rounded shadow">
+      <h1 className="mb-4 text-2xl font-bold">Checkpoint Detail</h1>
       <div className="mb-4">
         <div><strong>Document:</strong> {tracker.type} ({tracker.privacy})</div>
         <div><strong>Email:</strong> {checkpoint.email}</div>
@@ -52,8 +53,21 @@ export default function CheckpointPage() {
           trackerId={tracker.id}
           email={checkpoint.email}
           onSubmit={async (data) => {
-            await completeCheckpoint(data)
-            alert('Checkpoint updated successfully!')
+            const result = await completeCheckpoint(data)
+            // alert('Checkpoint updated successfully!')
+            if (!result) {
+              showAlertDanger({
+                title: 'Error',
+                html: 'Failed to update checkpoint',
+                confirmButtonText: 'OK',
+              })
+              return
+            }
+            showAlertSuccess({
+              title: 'Success',
+              html: 'Checkpoint updated successfully!',
+              confirmButtonText: 'OK',
+            })
             // window.location.reload()
           }}
         />
