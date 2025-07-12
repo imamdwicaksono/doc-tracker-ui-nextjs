@@ -19,7 +19,7 @@ export default function LogoutButton({ className = 'flex flex-col items-center t
   const handleLogout = async () => {
     const res = await logout()
     if (res.status == 200) {
-      router.push('/auth/login')
+      router.push('/')
     }
   }
 
