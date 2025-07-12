@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react'
 import { checkAuth, logout } from '@/lib/api'
-import { useRouter } from 'next/navigation'
 
 export default function LogoutButton({ className = 'flex flex-col items-center text-blue-600' }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
