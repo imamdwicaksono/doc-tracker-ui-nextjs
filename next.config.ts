@@ -6,6 +6,7 @@ let headers: Array<{
   source: string;
   headers: Array<{ key: string; value: string }>;
 }> = [];
+let rewrites: Array<{ source: string; destination: string }> = [];
 
 if (allowedOrigin) {
   const url = new URL(allowedOrigin);
@@ -35,6 +36,13 @@ if (allowedOrigin) {
       ],
     },
   ];
+
+  rewrites = [
+      {
+        source: '/api/:path*',
+        destination: `${allowedOrigin}/api/:path*`,
+      },
+    ];
 }
 
 const nextConfig = {
@@ -43,6 +51,9 @@ const nextConfig = {
   },
   async headers() {
     return headers;
+  },
+  async rewrites() {
+    return rewrites;
   },
 };
 
