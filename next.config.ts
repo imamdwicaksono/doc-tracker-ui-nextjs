@@ -42,6 +42,10 @@ if (allowedOrigin) {
         source: '/api/:path*',
         destination: `${allowedOrigin}/api/:path*`,
       },
+      {
+        source: '/evidence/:path*',
+        destination: `${allowedOrigin}/evidence/:path*`,
+      },
     ];
 }
 
