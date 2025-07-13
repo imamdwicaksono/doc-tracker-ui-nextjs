@@ -1,6 +1,15 @@
+// tailwind.config.ts
 module.exports = {
-  darkMode: "class", // ⬅️ wajib
-  content: ['./app/**/*.{js,ts,jsx,tsx}'],
-  theme: { extend: {} },
+  content: [
+    "./src/app/**/*.{ts,tsx}",
+    "./src/components/**/*.{ts,tsx}",
+    "./src/pages/**/*.{ts,tsx}",
+  ],
+  darkMode: "class",
+  theme: {
+    extend: {
+      // opsional: custom animation
+    },
+  },
   plugins: [],
 }

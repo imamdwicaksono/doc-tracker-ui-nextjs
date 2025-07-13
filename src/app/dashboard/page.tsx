@@ -2,7 +2,6 @@
 'use client'
 
 import { useState, useEffect } from 'react';
-import Link from 'next/link';
 import { getTrackerSummary, getUserInfo } from "@/lib/api";
 
 export default function DashboardPage() {
@@ -76,11 +75,11 @@ export default function DashboardPage() {
         </div>
 
         {/* Tambahkan komponen seperti: */}
-        <ul className="mt-6 space-y-2">
+        {/* <ul className="mt-6 space-y-2">
             <li>Lihat semua tracker <Link href="/trackers" className="text-blue-500">di sini</Link></li>
             <li>Buat tracker baru <Link href="/trackers/create" className="text-blue-500">di sini</Link></li>
             <li>Status dokumen terakhir <Link href="/status" className="text-blue-500">di sini</Link></li>
-        </ul>
+        </ul> */}
         </>
     );
 }

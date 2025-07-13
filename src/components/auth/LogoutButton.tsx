@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { checkAuth, logout } from '@/lib/api'
 
-export default function LogoutButton({ className = 'flex flex-col items-center text-blue-600' }) {
+export default function LogoutButton({ className = 'flex flex-col items-center text-blue-600 cursor-pointer', iconOnly = false }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
 
   useEffect(() => {
@@ -25,7 +25,14 @@ export default function LogoutButton({ className = 'flex flex-col items-center t
 
   return (
     <button onClick={handleLogout} className={className}>
-      Logout
+      {iconOnly ? (
+        <span className="material-icons">logout</span>
+      ) : (
+        <span className="flex items-center">
+          <span className="material-icons">logout</span>
+          <span className="ml-2">Logout</span>
+        </span>
+      )}
     </button>
   )
 }
