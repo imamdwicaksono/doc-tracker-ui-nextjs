@@ -60,7 +60,7 @@ const CheckpointForm: React.FC<CheckpointFormProps> = ({ trackerId, email, onSub
         <label className="block mb-1 font-semibold">Upload Evidence:</label>
         <input
           type="file"
-          accept="image/*,application/pdf"
+          accept="image/*" capture="environment"
           onChange={handleFileChange}
           required
         />
