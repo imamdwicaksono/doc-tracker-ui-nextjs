@@ -48,7 +48,12 @@ export default function QRImageReader({onTrackerFound}: Props) {
     console.log('🔍 Mencari tracker dengan ID:', id);
     try {
       const res = await getTrackerById(id);
-        console.log('🔍 Hasil pencarian:', res);
+      if (!res) {
+        setError('Tracker tidak ditemukan')
+      } else {
+        setTracker(res)
+      }
+      console.log('🔍 Hasil pencarian:', res);
       if (res !== null) {
         setTracker(res);
         onTrackerFound(res);

@@ -25,6 +25,10 @@ async function fetchWithAuth<T = any>(
 
   const json = await res.json();
   if (!res.ok) {
+    if (res.status === 404) {
+      // Tracker atau resource tidak ditemukan → return null
+      return null as any;
+    }
     const errorResult = await res.json();
     showAlertDanger({
       title: 'Error',
@@ -79,7 +83,8 @@ export async function fetchTrackerById(id: string) {
 }
 
 export async function getTrackerById(id: string) {
-  return fetchTrackerById(id); // alias
+  const res = await fetchTrackerById(id);
+  return res;
 }
 
 export async function getTrackerSummary(email: string) {
@@ -128,4 +133,14 @@ export async function checkAuth() {
 
 export async function getUserInfo() {
   return fetchWithAuth("/auth/me", "POST");
+}
+
+export async function getCurrentUserEmail(): Promise<string | null> {
+  try {
+    const res: any = await fetchWithAuth("/auth/me", "POST");
+    return res.email || null;
+  } catch (err) {
+    console.error("Error fetching user email:", err);
+    return null;
+  }
 }
