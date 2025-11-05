@@ -15,7 +15,7 @@ export default function LayoutWrapper({
   return (
     <>
 
-      <SidebarLayout>
+      <SidebarLayout mode="user">
         {children}
       </SidebarLayout>
     </>

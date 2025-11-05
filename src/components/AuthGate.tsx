@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react'
 import LoginOTPForm from '@/components/auth/LoginFormWithOtp'
 import TrackerModeCheckpointPage from './TrackerMode'
 import { checkAuth } from '@/lib/api'
+import SidebarLayout from './SidebarLayout'
 
 type AuthData = {
   email?: string
@@ -76,7 +77,11 @@ export default function AuthGate({ children }: { children: React.ReactNode }) {
 
   // --- Mode tracker ---
   if (authStatus === 'authenticated' && authData?.login_with === 'tracker') {
-    return <TrackerModeCheckpointPage />;
+    return (
+      <SidebarLayout mode="tracker">
+        <TrackerModeCheckpointPage />
+      </SidebarLayout>
+    );
   }
 
   // --- Mode user biasa ---
