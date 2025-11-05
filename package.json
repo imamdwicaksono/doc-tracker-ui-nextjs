@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "HOST=0.0.0.0 next start",
     "lint": "next lint",
-    "dev": "concurrently \"npm:next\" \"npm:go\"",
+    "dev": "concurrently \"npm:next\" ",
     "next": "next dev",
     "go": "cd ../doc-tracker-api && go run cmd/main.go",
     "export": "next export"

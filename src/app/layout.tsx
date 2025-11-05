@@ -1,6 +1,6 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { SpeedInsights } from "@vercel/speed-insights/next"
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import AuthGate from "@/components/AuthGate";
 import { AppThemeProvider } from "@/contexts/ThemeProvider";
 import LayoutWrapper from "@/components/LayoutWrapper";
@@ -31,14 +31,18 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen bg-background text-foreground`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen bg-background text-foreground overflow-y-auto`}
       >
         <AppThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <AuthGate>
+            {/* ✅ Layout fleksibel dan bisa di-scroll */}
             <div className="flex flex-col min-h-screen dark:text-white">
-              <LayoutWrapper isFormLogin={false}>
-                {children}
-              </LayoutWrapper>
+              {/* ✅ Tambahkan padding bawah agar tidak tertutup navbar fixed */}
+              <main className="flex-1 pb-24 sm:pb-28 lg:pb-32">
+                <LayoutWrapper isFormLogin={false}>
+                  {children}
+                </LayoutWrapper>
+              </main>
             </div>
           </AuthGate>
         </AppThemeProvider>

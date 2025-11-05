@@ -18,7 +18,7 @@ export default function TrackersPage() {
   }
 
   return (
-      <main className="min-h-screen p-10 space-y-10 bg-gray-100">
+      <main className="min-h-screen p-4 space-y-10 bg-gray-100">
         
         <h1 className="text-2xl font-bold">Trackers</h1>
         <QRImageReader onTrackerFound={handleTrackerFound} />

@@ -2,65 +2,84 @@
 import { CheckpointStatusInput, Tracker, TrackerInput } from "@/types/types";
 import { showAlertDanger } from "@/lib/sweetalert-alert";
 
-export const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3002/api";
-
+export const APP_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000/api"; // pastikan ada /api di akhir
 async function fetchWithAuth<T = any>(
   path: string,
   method: 'GET' | 'POST' | 'PUT' | 'DELETE',
   body?: any
 ): Promise<T> {
-  const res = await fetch(`${API_URL}${path}`, {
+  const res = await fetch(`${APP_URL}/${path}`, {
     method,
     headers: { 'Content-Type': 'application/json' },
     credentials: 'include',
     body: body ? JSON.stringify(body) : undefined,
   });
 
-  // if (res.status === 401) {
-  //   if (typeof window !== 'undefined') {
-  //     window.location.href = '/auth/login';
-  //   }
-  //   throw new Error('Unauthorized');
-  // }
+  let json: any;
+  try {
+    json = await res.json(); // ✅ baca sekali saja
+  } catch {
+    // kalau bukan JSON (misal HTML atau kosong)
+    json = {};
+  }
 
-  const json = await res.json();
+  
+
+  // 🔐 Optional: redirect kalau 401
+  if (res.status === 401) {
+    if (typeof window !== 'undefined') {
+      window.location.href = '/auth/login';
+    }
+    throw new Error('Unauthorized');
+  }
+
+  // ❌ Kalau gagal (bukan 2xx)
   if (!res.ok) {
     if (res.status === 404) {
-      // Tracker atau resource tidak ditemukan → return null
       return null as any;
     }
-    const errorResult = await res.json();
+
+    const errorMessage =
+      json?.message || json?.error || json?.detail || `HTTP ${res.status}: ${res.statusText}`;
+
     showAlertDanger({
       title: 'Error',
-      html: errorResult.message,
+      html: errorMessage,
       confirmButtonText: 'OK',
     });
-    throw new Error(errorResult.message || 'Failed to fetch data');
+
+    throw new Error(errorMessage);
   }
-  return json;
+
+  // ✅ Berhasil
+  return json as T;
 }
+
 
 async function fetchPublic<T = any>(
   path: string,
   method: 'GET' | 'POST',
   body?: any
 ): Promise<T> {
-  const res = await fetch(`${API_URL}${path}`, {
+  const res = await fetch(`${APP_URL}${path}`, {
     method,
     headers: { 'Content-Type': 'application/json' },
     body: body ? JSON.stringify(body) : undefined,
   });
 
-  const json = await res.json();
+  const json = await res.json(); // ✅ hanya sekali
+
+  console.log("fetchPublic response:", json);
+
   if (!res.ok) {
-    const errorResult = await res.json();
     showAlertDanger({
       title: 'Error',
-      html: errorResult.message,
+      html: json.message || 'Terjadi kesalahan saat mengambil data',
       confirmButtonText: 'OK',
     });
-    throw new Error(errorResult.message || 'Failed to fetch data');
+    throw new Error(json.message || 'Failed to fetch data');
   }
+
   return json;
 }
 
@@ -86,6 +105,10 @@ export async function getTrackerById(id: string) {
   const res = await fetchTrackerById(id);
   return res;
 }
+export async function getTrackerDetail(id: string) {
+  const res = await fetchTrackerById(id);
+  return res;
+} // alias of getTrackerDetail  
 
 export async function getTrackerSummary(email: string) {
   const res: any = await fetchWithAuth(`/tracker/summary/${email}`, "GET");
@@ -123,12 +146,12 @@ export async function logout() {
 }
 
 export async function checkAuth() {
-  const res = await fetch(`${API_URL}/auth/me`, {
+  const res = await fetch(`${APP_URL}/auth/me`, {
     method: "POST",
     credentials: "include", // ⬅️ penting agar cookie dikirim
     headers: { "Content-Type": "application/json" },
   });
-  return res.status === 200;
+  return res.json();
 }
 
 export async function getUserInfo() {

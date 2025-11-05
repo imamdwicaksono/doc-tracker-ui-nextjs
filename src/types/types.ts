@@ -1,18 +1,31 @@
 export interface Checkpoint {
-  email: string // email of the recipient
-  type: 'internal' | 'external' // type of checkpoint
-  company?: string // company name if external
-  role: 'signer' | 'courier' // type checkpoint role as signed or courier
-  is_view: boolean // whether the recipient can view the document
-  note?: string // note for the recipient
-  encrypted_note: string // encrypted note for the recipient
-  address: string // address of the recipient
+  // ✅ Versi baru (multi email)
+  emails?: string[] // multiple recipients
+  addresses?: string[] // multiple wallet addresses
+  encrypted_notes?: Record<string, string> // map: email → encrypted note
 
-  evidence_hash?: string // hash of the evidence file
-  evidence_path?: string // path to the evidence file
+  // ✅ Versi lama (legacy support)
+  email?: string // single recipient (for backward compatibility)
+  address?: string // single address (optional)
 
-  is_completed: boolean // whether the checkpoint is completed
-  completed_at?: number // timestamp when the checkpoint was completed
+  type: 'internal' | 'external' // checkpoint type
+  company?: string // only if external
+  role: 'signer' | 'courier' // signer or courier
+  is_view: boolean // whether recipient(s) can view the document
+
+  // plaintext note (only used before encryption)
+  note?: string
+
+  // single encrypted note (legacy)
+  encrypted_note?: string
+
+  // evidence
+  evidence_hash?: string
+  evidence_path?: string
+
+  // status
+  is_completed: boolean
+  completed_at?: number
 }
 
 export interface Tracker {
