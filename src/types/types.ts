@@ -54,6 +54,7 @@ export interface CheckpointStatusInput {
   email: string // email of the recipient
   note: string // note for the checkpoint
   evidence: string // base64 string
+  is_courier?: boolean // whether the submitter is a courier
 }
 
 export interface ResponseError {

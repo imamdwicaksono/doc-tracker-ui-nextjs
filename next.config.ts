@@ -44,16 +44,16 @@ if (allowedOrigin) {
       source: "/api/:path*",
       destination: `${protocol}://${hostname}:${port}/api/:path*`, // ⬅ tambahkan port
     },
-    {
-      source: "/evidence/:path*",
-      destination: `${protocol}://${hostname}:${port}/evidence/:path*`, // ⬅ tambahkan port
-    },
+    // {
+    //   source: "/evidence/:path*",
+    //   destination: `${protocol}://${hostname}:${port}/evidence/:path*`, // ⬅ tambahkan port
+    // },
   ];
 }
 
 const nextConfig = {
   images: {
-    remotePatterns,
+    remotePatterns: [],
   },
   async headers() {
     return headers;

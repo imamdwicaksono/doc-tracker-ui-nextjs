@@ -1,95 +1,109 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useParams } from 'next/navigation'
-import { fetchTrackerById, completeCheckpoint, getCurrentUserEmail } from '@/lib/api'
+import { redirect, useParams } from 'next/navigation'
+import {
+  fetchTrackerById,
+  completeCheckpoint,
+  getCurrentUserEmail,
+} from '@/lib/api'
 import { Tracker, Checkpoint } from '@/types/types'
 import CheckpointForm from '@/components/CheckpointForm'
 import { showAlertDanger, showAlertSuccess } from '@/lib/sweetalert-alert'
 
+const normalize = (v?: string) => (v ?? '').trim().toLowerCase()
+
+const isUserInCheckpoint = (cp: Checkpoint, email: string) =>
+  (cp.emails ?? []).some(e => normalize(e) === normalize(email))
+
 export default function CheckpointPage() {
   const { id, email } = useParams() as { id: string; email: string }
+
   const [tracker, setTracker] = useState<Tracker | null>(null)
   const [checkpoint, setCheckpoint] = useState<Checkpoint | null>(null)
-  const [currentUserEmail, setCurrentUserEmail] = useState<string | null>(null)
+  const [currentUserEmail, setCurrentUserEmail] = useState<string>('')
   const [canSubmit, setCanSubmit] = useState(false)
-  const [, setPreviousCheckpointsStatus] = useState<Checkpoint[]>([])
   const [activeModal, setActiveModal] = useState<string | null>(null)
 
   useEffect(() => {
     const load = async () => {
       const userEmail = await getCurrentUserEmail()
+      if (!userEmail) return
+
       setCurrentUserEmail(userEmail)
 
       const t = await fetchTrackerById(id)
       setTracker(t)
 
-      const cp: Checkpoint | undefined = t.checkpoints.find(
-        (c: Checkpoint) =>
-          decodeURIComponent((c.email ?? '').trim().toLowerCase()) ===
-          decodeURIComponent(email.trim().toLowerCase())
+      const cp = t.checkpoints.find((c: Checkpoint) =>
+        isUserInCheckpoint(c, decodeURIComponent(email)),
       )
-      setCheckpoint(cp || null)
 
-      if (!cp || !userEmail) {
+      if (!cp) {
+        setCheckpoint(null)
         setCanSubmit(false)
         return
       }
 
-      // Access control
-      const isPrivate = t.privacy === 'private'
-      const isOwnerOrCheckpoint =
-        userEmail.trim().toLowerCase() === t.creator.trim().toLowerCase() ||
-        userEmail.trim().toLowerCase() === (cp.email?.trim().toLowerCase() ?? '')
+      setCheckpoint(cp)
 
-      if (isPrivate && !isOwnerOrCheckpoint) {
+      // 🔐 ACCESS CONTROL
+      if (
+        t.privacy === 'private' &&
+        normalize(userEmail) !== normalize(t.creator) &&
+        !isUserInCheckpoint(cp, userEmail)
+      ) {
         setCanSubmit(false)
         return
       }
 
-      // previous checkpoints
-      const idx = t.checkpoints.findIndex((c: Checkpoint) => c.email === cp.email)
-      const previous = idx > 0 ? t.checkpoints.slice(0, idx) : []
-      setPreviousCheckpointsStatus(previous)
+      // 🧠 ORDER VALIDATION
+      const index = t.checkpoints.indexOf(cp)
+      const previous = index > 0 ? t.checkpoints.slice(0, index) : []
 
-      const allPreviousCompleted =
-        previous.length === 0 ? true : previous.every((c: Checkpoint) => c.is_completed)
+      const allPreviousCompleted = previous.every((c: Checkpoint) => c.is_completed)
       const isTrackerInProgress = t.status === 'progress'
-      const isUserOwner = (cp.email?.trim().toLowerCase() ?? '') === userEmail.trim().toLowerCase()
+      const isUserCheckpoint = isUserInCheckpoint(cp, userEmail)
 
-      setCanSubmit(allPreviousCompleted && isTrackerInProgress && !cp.is_completed && isUserOwner)
+      setCanSubmit(
+        allPreviousCompleted &&
+          isTrackerInProgress &&
+          !cp.is_completed &&
+          isUserCheckpoint,
+      )
     }
 
     load()
   }, [id, email])
 
-  if (!tracker || !checkpoint) return <div>Loading...</div>
+  if (!tracker || !checkpoint) {
+    return <div className="p-6 text-center">Loading…</div>
+  }
 
-  // Access control for private document
-  if (tracker.privacy === 'private') {
-    const userEmailLower = currentUserEmail?.toLowerCase()
-    if (
-      userEmailLower !== tracker.creator.toLowerCase() &&
-      userEmailLower !== (checkpoint.email ?? '').toLowerCase()
-    ) {
-      return (
-        <p className="text-red-500">
-          You are not authorized to view this private document.
-        </p>
-      )
-    }
+  // 🔐 FINAL ACCESS GUARD
+  if (
+    tracker.privacy === 'private' &&
+    normalize(currentUserEmail) !== normalize(tracker.creator) &&
+    !isUserInCheckpoint(checkpoint, currentUserEmail)
+  ) {
+    return (
+      <p className="p-6 text-red-500">
+        You are not authorized to view this private document.
+      </p>
+    )
   }
 
   return (
     <div className="max-w-3xl p-6 mx-auto mt-8 bg-white rounded shadow">
       <h1 className="mb-6 text-2xl font-bold">Checkpoint Detail</h1>
 
+      {/* INFO */}
       <div className="mb-6 space-y-2">
         <div>
           <strong>Document:</strong> {tracker.type} ({tracker.privacy})
         </div>
         <div>
-          <strong>Email:</strong> {checkpoint.email}
+          <strong>Your Email:</strong> {currentUserEmail}
         </div>
         <div>
           <strong>Role:</strong> {checkpoint.role}
@@ -100,18 +114,17 @@ export default function CheckpointPage() {
         </div>
       </div>
 
-      <div className="mb-6">
-        <strong>Note:</strong>
-        <p className="p-2 bg-gray-100 rounded">{checkpoint.note || 'No note'}</p>
-      </div>
-
-      {/* Stepper visual responsive */}
+      {/* STEPPER */}
       <div className="flex items-center mb-6 space-x-2 overflow-x-auto">
         {tracker.checkpoints.map((c, idx) => {
           const completed = c.is_completed
-          const active = c.email === checkpoint.email
+          const active = isUserInCheckpoint(c, currentUserEmail)
+
           return (
-            <div key={c.email} className="relative flex items-center">
+            <div
+              key={c.emails?.join('-')}
+              className="relative flex items-center"
+            >
               <button
                 className={`w-10 h-10 flex items-center justify-center rounded-full border-2 ${
                   completed
@@ -121,7 +134,11 @@ export default function CheckpointPage() {
                     : 'border-gray-300'
                 }`}
                 onClick={() =>
-                  setActiveModal(activeModal === c.email ? null : c.email ?? null)
+                  setActiveModal(
+                    activeModal === c.emails?.join('-')
+                      ? null
+                      : c.emails?.join('-') ?? null,
+                  )
                 }
               >
                 {idx + 1}
@@ -137,16 +154,21 @@ export default function CheckpointPage() {
                 />
               )}
 
-              {/* Modal tooltip */}
-              {activeModal === c.email && (
-                <div className="fixed z-50 w-64 p-3 text-sm transform -translate-x-1/2 -translate-y-1/2 bg-white border border-gray-300 rounded shadow-lg top-1/2 left-1/2">
-                  <p><strong>Email:</strong> {c.email}</p>
-                  <p><strong>Role:</strong> {c.role}</p>
-                  <p><strong>Note:</strong> {c.note || 'No note'}</p>
-                  <p><strong>Status:</strong> {c.is_completed ? '✅ Completed' : '⏳ Pending'}</p>
+              {activeModal === c.emails?.join('-') && (
+                <div className="fixed z-50 w-64 p-3 text-sm transform -translate-x-1/2 -translate-y-1/2 bg-white border rounded shadow top-1/2 left-1/2">
+                  <p>
+                    <strong>Emails:</strong> {c.emails?.join(', ')}
+                  </p>
+                  <p>
+                    <strong>Role:</strong> {c.role}
+                  </p>
+                  <p>
+                    <strong>Status:</strong>{' '}
+                    {c.is_completed ? '✅ Completed' : '⏳ Pending'}
+                  </p>
                   <button
                     onClick={() => setActiveModal(null)}
-                    className="px-2 py-1 mt-2 text-sm bg-gray-200 rounded hover:bg-gray-300"
+                    className="px-2 py-1 mt-2 bg-gray-200 rounded"
                   >
                     Close
                   </button>
@@ -157,14 +179,14 @@ export default function CheckpointPage() {
         })}
       </div>
 
-      {/* Form submit */}
+      {/* SUBMIT */}
       {canSubmit ? (
         <CheckpointForm
           trackerId={tracker.id}
-          email={checkpoint.email ?? ''}
-          onSubmit={async (data) => {
-            const result = await completeCheckpoint(data)
-            if (!result) {
+          email={currentUserEmail}
+          onSubmit={async data => {
+            const ok = await completeCheckpoint(data)
+            if (!ok) {
               showAlertDanger({
                 title: 'Error',
                 html: 'Failed to update checkpoint',
@@ -177,16 +199,14 @@ export default function CheckpointPage() {
               html: 'Checkpoint updated successfully!',
               confirmButtonText: 'OK',
             })
+
+            // Refresh page
+            redirect(`/checkpoints/${tracker.id}`)
           }}
         />
       ) : (
         <p className="text-red-500">
-          {!currentUserEmail ||
-          currentUserEmail.toLowerCase() !== (checkpoint.email ?? '').toLowerCase()
-            ? 'You are not authorized to complete this checkpoint.'
-            : tracker.status !== 'progress'
-            ? 'Tracker is not in progress.'
-            : 'Previous checkpoints must be completed first.'}
+          You cannot complete this checkpoint yet.
         </p>
       )}
     </div>

@@ -5,10 +5,12 @@ import { showAlertDanger } from '@/lib/sweetalert-alert'
 interface CheckpointFormProps {
   trackerId: string
   email: string
+  checkpointAddress?: string
+  isCourier?: boolean
   onSubmit: (data: CheckpointStatusInput) => void
 }
 
-const CheckpointForm: React.FC<CheckpointFormProps> = ({ trackerId, email, onSubmit }) => {
+const CheckpointForm: React.FC<CheckpointFormProps> = ({ trackerId, email, isCourier = false, onSubmit }) => {
   const [note, setNote] = useState('')
   const [evidenceFile, setEvidenceFile] = useState<File | null>(null)
 
@@ -38,6 +40,7 @@ const CheckpointForm: React.FC<CheckpointFormProps> = ({ trackerId, email, onSub
       email,
       note,
       evidence: base64,
+      is_courier: isCourier,
     }
 
     onSubmit(data)

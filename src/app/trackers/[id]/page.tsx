@@ -109,7 +109,7 @@ export default function TrackerDetailPage() {
               {cp.evidence_path && (
                 <div className="mt-2">
                   <a
-                    href={cp.evidence_path}
+                    href={`/api/evidence/view?hash=${cp.evidence_hash}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-blue-600 underline hover:text-blue-800"

@@ -11,7 +11,7 @@ export default function TrackerModeCheckpointPage() {
   const { id, email } = useParams() as { id: string; email: string }
   const [tracker, setTracker] = useState<Tracker | null>(null)
   const [checkpoint, setCheckpoint] = useState<Checkpoint | null>(null)
-  const [currentUserEmail, setCurrentUserEmail] = useState<string | null>(null)
+  const [, setCurrentUserEmail] = useState<string | null>(null)
   const [canSubmit, setCanSubmit] = useState(false)
   const [reasonBlocked, setReasonBlocked] = useState<string | null>(null)
   const [activeModal, setActiveModal] = useState<string | null>(null)
@@ -24,17 +24,23 @@ export default function TrackerModeCheckpointPage() {
       const t = await fetchTrackerById(id)
       setTracker(t)
 
-      // cari checkpoint berdasar email
-      let cp: Checkpoint | undefined = t.checkpoints.find(
-        (c: Checkpoint) =>
-          c.email &&
-          email &&
-          decodeURIComponent(c.email.trim().toLowerCase()) ===
-            decodeURIComponent(email.trim().toLowerCase())
-      )
+      const isTrackerMode = !email || email.trim() === ''
 
-      // fallback ke courier / empty email
+      // 1️⃣ Resolve checkpoint
+      let cp: Checkpoint | undefined
+
+      if (!isTrackerMode) {
+        // USER MODE → match email
+        cp = t.checkpoints.find(
+          (c: Checkpoint) =>
+            c.email &&
+            decodeURIComponent(c.email.toLowerCase()) ===
+              decodeURIComponent(email.toLowerCase())
+        )
+      }
+
       if (!cp) {
+        // TRACKER MODE / fallback → courier / empty email
         cp = t.checkpoints.find(
           (c: Checkpoint) =>
             (!c.email || c.email.trim() === '') &&
@@ -42,87 +48,64 @@ export default function TrackerModeCheckpointPage() {
         )
       }
 
-      setCheckpoint(cp || null)
-
-      // jika tidak ada checkpoint
-      if (!cp || !userEmail) {
+      if (!cp) {
+        setReasonBlocked('Checkpoint tidak ditemukan.')
         setCanSubmit(false)
-        setReasonBlocked('Checkpoint tidak ditemukan atau user tidak terdeteksi.')
         return
       }
 
-      // private tracker → hanya creator atau checkpoint yang boleh
-      const isPrivate = t.privacy === 'private'
-      const isOwnerOrCheckpoint =
-        userEmail.trim().toLowerCase() === t.creator.trim().toLowerCase() ||
-        userEmail.trim().toLowerCase() === (cp.email?.trim().toLowerCase() ?? '')
+      setCheckpoint(cp)
 
-      if (isPrivate && !isOwnerOrCheckpoint) {
+      // 2️⃣ Private access control
+      if (
+        t.privacy === 'private' &&
+        !isTrackerMode &&
+        userEmail?.toLowerCase() !== t.creator.toLowerCase() &&
+        userEmail?.toLowerCase() !== cp.email?.toLowerCase()
+      ) {
+        setReasonBlocked('Dokumen privat. Akses ditolak.')
         setCanSubmit(false)
-        setReasonBlocked('Dokumen ini bersifat privat. Anda tidak memiliki izin.')
         return
       }
 
-      // urutan checkpoint
-      const idx = t.checkpoints.findIndex((c: Checkpoint) => c.address === cp?.address)
+      // 3️⃣ Check order
+      const idx = t.checkpoints.findIndex((c: Checkpoint) => c.address === cp.address)
       const previous = idx > 0 ? t.checkpoints.slice(0, idx) : []
 
-      const allPreviousCompleted =
-        previous.length === 0 ? true : previous.every((c: Checkpoint) => c.is_completed)
-
-      // jika ada checkpoint sebelumnya tapi belum complete
-      if (!allPreviousCompleted) {
+      if (previous.some((c: Checkpoint) => !c.is_completed)) {
+        setReasonBlocked('Checkpoint sebelumnya belum selesai.')
         setCanSubmit(false)
-        setReasonBlocked('Belum waktunya untuk check-in. Checkpoint sebelumnya belum selesai.')
         return
       }
 
-      const isTrackerInProgress = t.status === 'progress'
-      if (!isTrackerInProgress) {
+      // 5️⃣ Final permission
+      if (cp.is_completed) {
+        setReasonBlocked('Checkpoint sudah diselesaikan.')
         setCanSubmit(false)
+        return
+      }
+      // 4️⃣ Tracker status
+      if (t.status !== 'progress') {
         setReasonBlocked('Tracker belum dalam status progress.')
+        setCanSubmit(false)
         return
       }
 
-      const isUserOwner =
-        (cp.email?.trim().toLowerCase() ?? '') === userEmail.trim().toLowerCase()
+      
 
-      // tracker mode: boleh siapa pun jika courier atau email kosong
-      const isTrackerMode =
-        !cp.email || cp.email.trim() === '' || cp.role?.toLowerCase() === 'courier'
-
-      // final permission
-      if (!cp.is_completed && (isUserOwner || isTrackerMode)) {
+      if (isTrackerMode || userEmail?.toLowerCase() === cp.email?.toLowerCase()) {
         setCanSubmit(true)
         setReasonBlocked(null)
-      } else if (cp.is_completed) {
-        setCanSubmit(false)
-        setReasonBlocked('Checkpoint ini sudah diselesaikan.')
-      } else {
-        setCanSubmit(false)
-        setReasonBlocked('Anda tidak diizinkan melakukan check-in pada checkpoint ini.')
+        return
       }
+
+      setReasonBlocked('Anda tidak diizinkan mengisi checkpoint ini.')
+      setCanSubmit(false)
     }
 
     load()
   }, [id, email])
 
-  if (!tracker || !checkpoint) return <div>Loading...</div>
-
-  // Access control untuk private tracker
-  if (tracker.privacy === 'private') {
-    const userEmailLower = currentUserEmail?.toLowerCase()
-    if (
-      userEmailLower !== tracker.creator.toLowerCase() &&
-      userEmailLower !== (checkpoint.email ?? '').toLowerCase()
-    ) {
-      return (
-        <p className="text-red-500">
-          You are not authorized to view this private document.
-        </p>
-      )
-    }
-  }
 
   return (
     <div className="max-w-3xl p-6 mx-auto mt-8 bg-white rounded shadow">
@@ -130,30 +113,30 @@ export default function TrackerModeCheckpointPage() {
 
       <div className="mb-6 space-y-2">
         <div>
-          <strong>Document:</strong> {tracker.type} ({tracker.privacy})
+          <strong>Document:</strong> {tracker ? `${tracker.type} (${tracker.privacy})` : <em>Loading...</em>}
         </div>
         <div>
-          <strong>Email:</strong> {checkpoint.email || <em>Empty (Tracker Mode)</em>}
+          <strong>Email:</strong> {checkpoint?.email || <em>Empty (Tracker Mode)</em>}
         </div>
         <div>
-          <strong>Role:</strong> {checkpoint.role}
+          <strong>Role:</strong> {checkpoint?.role}
         </div>
         <div>
           <strong>Status:</strong>{' '}
-          {checkpoint.is_completed ? '✅ Completed' : '⏳ Pending'}
+          {checkpoint?.is_completed ? '✅ Completed' : '⏳ Pending'}
         </div>
       </div>
 
       <div className="mb-6">
         <strong>Note:</strong>
-        <p className="p-2 bg-gray-100 rounded">{checkpoint.note || 'No note'}</p>
+        <p className="p-2 bg-gray-100 rounded">{checkpoint?.note || 'No note'}</p>
       </div>
 
       {/* Stepper */}
       <div className="flex items-center mb-6 space-x-2 overflow-x-auto">
-        {tracker.checkpoints.map((c, idx) => {
+        {tracker?.checkpoints.map((c, idx) => {
           const completed = c.is_completed
-          const active = c.address === checkpoint.address
+          const active = c.address === checkpoint?.address
           return (
             <div key={c.address} className="relative flex items-center">
               <button
@@ -203,8 +186,9 @@ export default function TrackerModeCheckpointPage() {
       {/* Form */}
       {canSubmit ? (
         <CheckpointForm
-          trackerId={tracker.id}
-          email={checkpoint.email ?? ''}
+          trackerId={tracker!.id}
+          email={checkpoint!.email || ''}
+          isCourier={checkpoint?.role?.toLowerCase() === 'courier'}
           onSubmit={async (data) => {
             const result = await completeCheckpoint(data)
             if (!result) {
@@ -220,6 +204,10 @@ export default function TrackerModeCheckpointPage() {
               html: 'Checkpoint updated successfully!',
               confirmButtonText: 'OK',
             })
+
+            // Refresh page
+            window.location.reload()
+            
           }}
         />
       ) : (
@@ -229,4 +217,5 @@ export default function TrackerModeCheckpointPage() {
       )}
     </div>
   )
+
 }
